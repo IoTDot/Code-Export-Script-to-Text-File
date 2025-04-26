@@ -1,281 +1,273 @@
-<a id="top"></a>
-<p align="left">
-  <a href="#en">🇬🇧 English</a> |
-  <a href="#pl">🇵🇱 Polski</a>
+**<a id="top"></a>**  
+<p align="left">  
+  <a href="#en">🇬🇧 English</a> |  
+  <a href="#pl">🇵🇱 Polski</a>  
 </p>
 
 <a id="en"></a>
 
 # Code Export Script to Text File _🇬🇧_
 
-This Python script is designed to automatically collect the contents of code files from a specified folder within your VS Code workspace and export them into a single text file. This is especially useful for quickly sharing code context, analysis, or archiving.
+This Python script automates collecting the contents of code files from a specified folder within your VS Code workspace and exports them into a single text file. It’s ideal for sharing code context, analysis, or archiving quickly.
 
 ## Features
 
-*   **Single File Export:** Combines the contents of multiple files into one `.txt` file.
-*   **VS Code Workspace Context:** Operates based on the current working folder (assumed to be the main project folder opened in VS Code).
-*   **Configurable Source Folder:** You can define which subfolder (or the entire workspace) is the source for export.
-*   **Configurable Output Folder:** The output file is created in a dedicated subfolder (`export_code` by default) within the workspace.
-*   **Ignore File Extensions:** Define a list of file extensions to ignore during export (e.g. `.tmp`, `.bak`, `.pyc`).
-*   **Ignore Paths:** Define folders or files (relative to the workspace) to completely skip (e.g. `.git`, `venv`, `node_modules`, the export folder itself).
-*   **Preserve Structure (in headers):** Each code segment in the output file is preceded by a header indicating its original relative path.
-*   **Encoding Handling:** Tries to read files using UTF-8 encoding while ignoring errors to prevent crashes due to unusual characters.
+- **Single File Export:** Merges multiple source files into one `.txt` file.  
+- **Workspace Context:** Works relative to the current VS Code workspace root.  
+- **Configurable Source Folder:** Choose a subfolder (e.g. `src`) or the entire workspace.  
+- **Configurable Output Folder:** Output goes into a dedicated subfolder (default `export_code`).  
+- **Ignore Extensions:** Skip files by extension (case-insensitive).  
+- **Ignore Paths:** Skip entire folders/files (e.g. `.git`, `node_modules`, virtual environments, the export folder).  
+- **Directory Tree Header:** Inserts a tree of the source directory at the top of the output.  
+- **File Headers:** Each code block is preceded by its original relative path.  
+- **Encoding Handling:** Reads with UTF‑8 and ignores errors to avoid crashes.
 
 ## Requirements
 
-*   **Python 3:** Ensure Python 3 is installed and accessible via your system path.
-*   **VS Code Workspace:** Run the script from the VS Code terminal with the project folder open as a workspace.
-*   **(Optional) Python Extension for VS Code:** For using the run button (▶️).
+- **Python 3:** Installed and in your system PATH.  
+- **VS Code Workspace:** Open the project root in VS Code.  
+- **(Optional) Python Extension:** For running via the ▶️ button.
 
-## Installation / Setup
+## Installation & Setup
 
-1.  **Save the Script:** Save the Python code as a `.py` file (e.g., `export_script.py`) in the **root folder** of your VS Code workspace. This is crucial for correct relative path handling, especially when using the run button.
-2.  **Configure:** Open the `export_script.py` file in the editor and adjust the variables in the `--- Configuration ---` section according to your needs.
+1. **Save the Script**  
+   Save the Python code as `export_script.py` in the **root** of your VS Code workspace.  
+2. **Configure**  
+   Open `export_script.py` and edit the `--- Configuration ---` section as needed.
 
 ## Configuration
 
-All configuration options are located at the top of the `export_script.py` file in the section marked `--- Configuration ---`.
+All options live at the top of `export_script.py`:
 
 ```python
 # --- Configuration ---
 
-# Source folder RELATIVE to the VS Code workspace folder.
-# '.' means the whole workspace. You can change this to 'src' or 'scripts', for example.
-FOLDER_ZRODLOWY_RELATYWNY = '.'
+# Source folder RELATIVE to the workspace root.
+# Default 'src'; use '.' for entire workspace.
+FOLDER_ZRODLOWY_RELATYWNY = 'src'
 
-# Name of the folder where the output file will be created (relative to workspace)
-FOLDER_EXPORTU_NAZWA = 'export_code'
-# Name of the output file
-PLIK_EXPORTU_NAZWA = 'export.txt'
+# Output folder name (relative to workspace).
+FOLDER_EXPORTU_NAZWA    = 'export_code'
+# Output file name.
+PLIK_EXPORTU_NAZWA      = 'export.txt'
 
-# Add extensions (with dot!) you want to skip in the export.
-# Extensions are checked case-insensitively (e.g. .TMP and .tmp are both ignored)
-POMIJANE_ROZSZERZENIA = {".tmp", ".bak"}
+# File extensions to skip (include leading dot, case-insensitive).
+POMIJANE_ROZSZERZENIA = {'.tmp', '.bak'}
 
-# Additional folders/files to skip (paths RELATIVE to workspace)
-# Important to skip the export folder itself to avoid self-inclusion
-POMIJANE_SCIEZKI = {FOLDER_EXPORTU_NAZWA}
+# Folders/files to skip (relative paths).
+# Must include export folder to avoid self-inclusion.
+POMIJANE_SCIEZKI = {
+    FOLDER_EXPORTU_NAZWA,
+    '.git',
+    'node_modules',
+    'venv',
+    '__pycache__'
+}
+
+# Additional files to include at the end (relative to workspace).
+DODATKOWE_PLIKI = [
+    'platformio.ini',
+]
 
 # --- End of Configuration ---
-```
+```  
 
-*   **`FOLDER_ZRODLOWY_RELATYWNY`**: Relative path to the folder from which files will be exported. Default `'.'` means the entire workspace. Change to `'src'` to export only from the `src` folder.
-*   **`FOLDER_EXPORTU_NAZWA`**: Name of the subfolder created within the workspace to hold the output file. Default is `'export_code'`.
-*   **`PLIK_EXPORTU_NAZWA`**: Name of the text file to which the exported code will be saved. Default is `'export.txt'`.
-*   **`POMIJANE_ROZSZERZENIA`**: A set of file extensions to ignore. Make sure to include the dot (e.g. `".log"`). Case-insensitive.
-*   **`POMIJANE_SCIEZKI`**: A set of relative paths (folders or files) to be completely skipped. Ensure the export folder is included here to prevent self-inclusion.
+- **FOLDER_ZRODLOWY_RELATYWNY:** `'src'` by default. Use `'.'` to export the whole workspace.  
+- **POMIJANE_SCIEZKI:** Common ignores: `.git`, `node_modules`, virtual envs, caches.
 
 ## Running the Script
 
-There are two main ways to run the script within the VS Code environment:
+### Method 1: Integrated Terminal (recommended)
 
-### Method 1: Using the Integrated Terminal (recommended for full control)
+1. Open the workspace in VS Code.  
+2. Open Terminal (`Ctrl+\``). Ensure it’s at the workspace root.  
+3. Run:
+   ```bash
+   python export_script.py
+   # or python3 export_script.py
+   ```
+4. Watch progress in the terminal.
 
-1.  Open your project (workspace) in VS Code.
-2.  Open the integrated terminal (`Terminal` menu -> `New Terminal` or `Ctrl+\``). **Ensure it's running in the main workspace folder.**
-3.  Run the following command (replace `export_script.py` with your actual script name if different):
+### Method 2: ▶️ Run Python File (requires Python extension)
 
-    ```bash
-    python export_script.py
-    ```
-    or if using `python3`:
-    ```bash
-    python3 export_script.py
-    ```
-4.  The script will begin processing files and show progress/output in the terminal.
+1. Install the official [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python).  
+2. Open `export_script.py` in the editor (must be in workspace root).  
+3. Click the ▶️ button in the editor toolbar.  
+4. Output appears in the "OUTPUT"/"TERMINAL" pane.
 
-### Method 2: Using the "Run Python File" Button (requires Python extension)
+> **Note:** This runs in the folder containing `export_script.py`, so it must live at the workspace root for relative paths to resolve correctly.
 
-1.  Ensure you have the official [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed in VS Code.
-2.  Open the script file (e.g. `export_script.py`) in the VS Code editor. **Make sure it resides in the root of the workspace.**
-3.  Click the ▶️ "Run Python File" button in the top-right corner of the editor.
+## Output Example
 
-    *   **Important:** This method runs the script in the context of the folder where the script file resides. So it **must** be located in the root workspace folder for relative paths (`FOLDER_ZRODLOWY_RELATYWNY`, `POMIJANE_SCIEZKI`) to resolve correctly.
-    *   Output messages (from `print`) will appear in the "OUTPUT" or "TERMINAL" pane at the bottom, depending on your Python extension settings.
+Upon successful run, `export_code/export.txt` will contain:
 
-Regardless of the method, the script will read its configuration, process the files accordingly, and create the result file in the export folder.
+```
+# --- DIRECTORY TREE (/home/user/project/src) ---
+# src/
+# ├── main.py
+# └── utils/
+#     └── helper.py
+#
+# --- CODE EXPORT START ---
+# Source: /home/user/project/src
+# Skipped extensions: .bak, .tmp
+# Skipped paths: export_code, .git, node_modules, venv, __pycache__
+#
+========================================
+=== File: main.py
+========================================
 
-## Output
+# Content of main.py
+print("Hello, World!")
 
-Upon successful execution:
+========================================
+=== File: utils/helper.py
+========================================
 
-1.  A subfolder defined by `FOLDER_EXPORTU_NAZWA` (default `export_code`) will be created in the root of the workspace if it doesn't already exist.
-2.  Inside this folder, a text file named as per `PLIK_EXPORTU_NAZWA` (default `export.txt`) will be generated.
-3.  This file will contain the combined contents of all *non-skipped* files found in `FOLDER_ZRODLOWY_RELATYWNY`. Each code segment will be preceded by a comment with the original file path, for example:
+# Content of helper.py
+def helper(): pass
 
-    ```
-    # --- CODE EXPORT START ---
-    # Source: /path/to/your/workspace
-    # Skipped extensions: .tmp, .bak
-    # Skipped paths: export_code
-    #
+# --- CODE EXPORT END ---
+```
 
-    ========================================
-    === File: main.py
-    ========================================
+## Troubleshooting & FAQ
 
-    # Content of main.py
-    print("Hello, World!")
+**Q:** *Permission denied writing to export folder.*  
+**A:** Check file system permissions or run with appropriate user rights.
 
+**Q:** *`export.txt` too large?*  
+**A:** Narrow `FOLDER_ZRODLOWY_RELATYWNY` or add more patterns to `POMIJANE_SCIEZKI`/`POMIJANE_ROZSZERZENIA`.
 
-    ========================================
-    === File: utils/helpers.py
-    ========================================
+**Q:** *Unicode errors?*  
+**A:** Script ignores decode errors; ensure files are UTF‑8 or adjust to another codec.
 
-    # Content of utils/helpers.py
-    def helper_function():
-        pass
-
-    # --- CODE EXPORT END ---
-    ```
-
-## Important Notes
-
-*   **Overwriting:** Each run of the script **overwrites** the existing `export.txt`. Rename or backup if you want to keep previous versions.
-*   **File Encoding:** The script tries to read source files as UTF-8, ignoring errors. Unusual characters from other encodings may be skipped or replaced.
-*   **Large Projects:** For very large projects with many files, the resulting `export.txt` can become quite large.
-*   **Skipping Important Folders:** Make sure `POMIJANE_SCIEZKI` includes all folders you don't want to export (e.g., dependency folders, `.git`, virtual environments, etc.).
+**Q:** *Missing files in export?*  
+**A:** Verify your `POMIJANE_*` settings and that `src` folder exists.
 
 [🔝 Back to top / Powrót na górę](#top)
 
-***
 ***
 
 <a id="pl"></a>
 
 # Skrypt Eksportu Kodu do Pliku Tekstowego _🇵🇱_
 
-Ten skrypt Pythona służy do automatycznego zbierania zawartości plików kodu z określonego folderu w ramach Twojego workspace VS Code i eksportowania ich do jednego, zbiorczego pliku tekstowego. Jest to przydatne np. do szybkiego udostępniania kontekstu kodu, analizy lub archiwizacji.
+Ten skrypt Pythona automatycznie zbiera zawartość plików kodu z określonego folderu w ramach workspace VS Code i eksportuje je do jednego pliku tekstowego. Świetnie nadaje się do szybkiego udostępniania kodu, analizy lub archiwizacji.
 
 ## Funkcjonalność
 
-*   **Eksport do jednego pliku:** Łączy zawartość wielu plików w jeden plik `.txt`.
-*   **Kontekst Workspace VS Code:** Działa w oparciu o bieżący folder roboczy (zakładamy, że jest to główny folder projektu otwarty w VS Code).
-*   **Konfigurowalne źródło:** Możesz określić, który podfolder (lub cały workspace) ma być źródłem eksportu.
-*   **Konfigurowalny folder wynikowy:** Plik wynikowy jest tworzony w dedykowanym podfolderze (`export_code` domyślnie) w ramach workspace.
-*   **Pomijanie rozszerzeń:** Możliwość zdefiniowania listy rozszerzeń plików, które mają być ignorowane podczas eksportu (np. `.tmp`, `.bak`, `.pyc`).
-*   **Pomijanie ścieżek:** Możliwość zdefiniowania listy folderów lub plików (względnych do workspace), które mają być całkowicie pominięte (np. `.git`, `venv`, `node_modules`, sam folder eksportu).
-*   **Zachowanie struktury (w nagłówkach):** W pliku wynikowym każdy fragment kodu z danego pliku jest poprzedzony nagłówkiem wskazującym jego oryginalną, względną ścieżkę.
-*   **Obsługa kodowania:** Próbuje odczytać pliki jako UTF-8, ignorując błędy (co zapobiega awarii skryptu przy nietypowych znakach, ale może pominąć niektóre z nich).
+- **Eksport do jednego pliku:** Łączy wiele plików źródłowych w jeden plik `.txt`.  
+- **Kontekst workspace:** Działa względem głównego katalogu projektu w VS Code.  
+- **Konfigurowalne źródło:** Wybierz podfolder (np. `src`) lub cały workspace.  
+- **Konfigurowalny folder wynikowy:** Wynik trafia do subfolderu (domyślnie `export_code`).  
+- **Pomijanie rozszerzeń:** Ignoruje pliki według rozszerzenia (bez rozróżnienia wielkości liter).  
+- **Pomijanie ścieżek:** Ignoruje foldery/pliki (np. `.git`, `node_modules`, `venv`, folder eksportu).  
+- **Drzewo katalogów:** Dodaje drzewo katalogów źródłowych na początku pliku.  
+- **Nagłówki plików:** Każdy fragment kodu ma nagłówek z jego oryginalną ścieżką.  
+- **Obsługa kodowania:** Odczyt UTF‑8, ignoruje błędy kodowania.
 
 ## Wymagania
 
-*   **Python 3:** Upewnij się, że masz zainstalowany Python 3 i jest on dostępny w ścieżce systemowej.
-*   **Workspace VS Code:** Skrypt powinien być uruchamiany z terminala VS Code, gdy otwarty jest folder projektu (workspace).
-*   **(Opcjonalnie) Rozszerzenie Python dla VS Code:** Do użycia metody uruchamiania przez przycisk ▶️.
+- **Python 3** zainstalowany i dostępny w PATH.  
+- **Workspace VS Code** otwarty w VS Code.  
+- **(Opcjonalnie) Rozszerzenie Python** dla przycisku ▶️.
 
-## Instalacja / Setup
+## Instalacja i Konfiguracja
 
-1.  **Zapisz skrypt:** Zapisz kod Pythona jako plik `.py` (np. `export_script.py`) w **głównym folderze** Twojego workspace VS Code. Jest to ważne dla poprawnego działania ścieżek względnych, zwłaszcza przy uruchamianiu przez przycisk.
-2.  **Skonfiguruj:** Otwórz plik `export_script.py` w edytorze i dostosuj zmienne w sekcji `--- Konfiguracja ---` zgodnie ze swoimi potrzebami.
+1. **Zapisz skrypt**  
+   Umieść `export_script.py` w **głównym** folderze workspace.  
+2. **Dostosuj konfigurację**  
+   Edytuj sekcję `--- Configuration ---` w skrypcie.
 
 ## Konfiguracja
-
-Wszystkie opcje konfiguracyjne znajdują się na początku pliku `export_script.py` w sekcji oznaczonej `--- Konfiguracja ---`.
 
 ```python
 # --- Konfiguracja ---
 
-# Folder źródłowy WZGLĘDEM folderu workspace VS Code.
-# '.' oznacza cały folder workspace. Możesz zmienić na np. 'src' lub 'scripts'.
-FOLDER_ZRODLOWY_RELATYWNY = '.'
+# Folder źródłowy względem workspace ('src' domyślnie, '.' = cały projekt)
+FOLDER_ZRODLOWY_RELATYWNY = 'src'
 
-# Nazwa folderu, w którym zostanie utworzony plik wynikowy (względem workspace)
+# Folder wynikowy (względem workspace)
 FOLDER_EXPORTU_NAZWA = 'export_code'
-# Nazwa pliku wynikowego
-PLIK_EXPORTU_NAZWA = 'export.txt'
+# Plik wynikowy
+PLIK_EXPORTU_NAZWA   = 'export.txt'
 
-# Dodaj rozszerzenia (z kropką!), które chcesz pominąć w eksporcie.
-# Rozszerzenia są sprawdzane bez względu na wielkość liter (np. .TMP i .tmp będą pominięte)
-POMIJANE_ROZSZERZENIA = {".tmp", ".bak"}
-# Przykład dodania kolejnych:
-# POMIJANE_ROZSZERZENIA = {".tmp", ".bak", ".log", ".obj", ".pyc", ".git", ".vscode"}
+# Rozszerzenia do pominięcia (z kropką)
+POMIJANE_ROZSZERZENIA = {'.tmp', '.bak'}
 
-# Dodatkowe foldery/pliki do pominięcia (ścieżki WZGLĘDEM workspace)
-# Ważne, aby pominąć sam folder eksportu, by nie dołączał się do siebie!
-POMIJANE_SCIEZKI = {FOLDER_EXPORTU_NAZWA}
-# Przykład:
-# POMIJANE_SCIEZKI = {FOLDER_EXPORTU_NAZWA, '.git', '.vscode', 'venv', '__pycache__'}
+# Ścieżki do pominięcia (foldery/pliki)
+POMIJANE_SCIEZKI = {
+    FOLDER_EXPORTU_NAZWA,
+    '.git',
+    'node_modules',
+    'venv',
+    '__pycache__'
+}
 
-# --- Koniec Konfiguracji ---
-```
+# Dodatkowe pliki do dołączenia na końcu
+DODATKOWE_PLIKI = [
+    'platformio.ini',
+]
 
-*   **`FOLDER_ZRODLOWY_RELATYWNY`**: Ścieżka do folderu, z którego mają być eksportowane pliki, *względna* do głównego folderu workspace. Domyślnie `'.'` oznacza cały workspace. Zmień na np. `'src'`, jeśli chcesz eksportować tylko zawartość folderu `src`.
-*   **`FOLDER_EXPORTU_NAZWA`**: Nazwa podfolderu, który zostanie utworzony w workspace, aby pomieścić plik wynikowy. Domyślnie `'export_code'`.
-*   **`PLIK_EXPORTU_NAZWA`**: Nazwa pliku tekstowego, do którego zostanie zapisany wyeksportowany kod. Domyślnie `'export.txt'`.
-*   **`POMIJANE_ROZSZERZENIA`**: Zestaw (set) ciągów znaków reprezentujących rozszerzenia plików do pominięcia. Pamiętaj o kropce na początku (np. `".log"`). Wielkość liter jest ignorowana.
-*   **`POMIJANE_SCIEZKI`**: Zestaw (set) ciągów znaków reprezentujących ścieżki do folderów lub plików, które mają być całkowicie zignorowane. Ścieżki podawaj *względnie* do głównego folderu workspace (np. `'.git'`, `'venv'`, `'node_modules'`). **Ważne:** Domyślnie zawiera `FOLDER_EXPORTU_NAZWA`, aby skrypt nie próbował dołączyć swojego wyniku do samego siebie.
+# --- Koniec konfiguracji ---
+```  
 
 ## Uruchamianie skryptu
 
-Istnieją dwa główne sposoby uruchomienia skryptu w środowisku VS Code:
+### Metoda 1: Terminal (zalecane)
 
-**Metoda 1: Użycie zintegrowanego terminala (zalecane dla pełnej kontroli)**
+1. Otwórz projekt w VS Code.  
+2. Otwórz terminal (`Ctrl+\``) w głównym folderze workspace.  
+3. Uruchom:
+   ```bash
+   python export_script.py
+   ```
+4. Śledź postęp w terminalu.
 
-1.  Otwórz swój projekt (workspace) w VS Code.
-2.  Otwórz zintegrowany terminal w VS Code (menu `Terminal` -> `Nowy Terminal` lub skrót `Ctrl+` \`). **Upewnij się, że terminal jest uruchomiony w głównym folderze Twojego workspace.** Możesz to sprawdzić, patrząc na ścieżkę wyświetlaną w terminalu.
-3.  Wpisz w terminalu następującą komendę (zastąp `export_script.py` rzeczywistą nazwą pliku, jeśli jest inna):
+### Metoda 2: ▶️ Run Python File (wymaga rozszerzenia)
 
-    ```bash
-    python export_script.py
-    ```
-    lub jeśli używasz `python3`:
-    ```bash
-    python3 export_script.py
-    ```
-4.  Skrypt rozpocznie przetwarzanie plików, wyświetlając postęp i wyniki w terminalu.
+1. Zainstaluj oficjalne rozszerzenie [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python).  
+2. Otwórz `export_script.py` w VS Code (musi być w głównym folderze).  
+3. Kliknij ▶️ w prawym górnym rogu.  
+4. Wyniki zobaczysz w panelu "OUTPUT"/"TERMINAL".
 
-**Metoda 2: Użycie przycisku "Run Python File" (wymaga rozszerzenia Python)**
+> **Uwaga:** Skrypt uruchamia się w katalogu, gdzie leży plik, więc `export_script.py` musi być w root, by ścieżki działały poprawnie.
 
-1.  Upewnij się, że masz zainstalowane oficjalne rozszerzenie [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) dla VS Code.
-2.  Otwórz plik skryptu (np. `export_script.py`) w edytorze VS Code. **Upewnij się, że plik skryptu znajduje się w głównym folderze workspace.**
-3.  Znajdź przycisk ▶️ ("Run Python File") w prawym górnym rogu okna edytora.
-4.  Kliknij ten przycisk.
+## Przykład wyniku
 
-    *   **Ważne:** Ta metoda uruchomi skrypt używając interpretera Pythona skonfigurowanego w VS Code. Skrypt będzie działał w kontekście *folderu, w którym znajduje się sam plik skryptu*. Dlatego **kluczowe jest, aby plik `export_script.py` znajdował się bezpośrednio w głównym folderze Twojego workspace**, aby ścieżki względne (`FOLDER_ZRODLOWY_RELATYWNY`, `POMIJANE_SCIEZKI`) były poprawnie interpretowane względem całego projektu.
-    *   Wyniki działania skryptu (komunikaty `print`) zostaną wyświetlone w zakładce "OUTPUT" lub "TERMINAL" w dolnym panelu VS Code, w zależności od konfiguracji rozszerzenia Python.
+```
+# --- DRZEWO KATALOGÓW (/home/user/project/src) ---
+# src/
+# ├── main.py
+# └── utils/
+#     └── helper.py
+#
+# --- POCZĄTEK EKSPORTU KODU ---
+# Źródło: /home/user/project/src
+# Pominięte rozszerzenia: .bak, .tmp
+# Pominięte ścieżki: export_code, .git, node_modules, venv, __pycache__
+#
+========================================
+=== Plik: main.py
+========================================
 
-Niezależnie od wybranej metody, skrypt odczyta swoją konfigurację, przetworzy pliki zgodnie z nią i utworzy plik wynikowy w folderze eksportu.
+# Zawartość main.py
+print("Hello, World!")
 
-## Wynik (Output)
+========================================
+=== Plik: utils/helper.py
+========================================
 
-Po pomyślnym uruchomieniu skryptu:
+# Zawartość helper.py
+def helper(): pass
 
-1.  W głównym folderze workspace zostanie utworzony (jeśli nie istniał) podfolder o nazwie zdefiniowanej w `FOLDER_EXPORTU_NAZWA` (domyślnie `export_code`).
-2.  Wewnątrz tego folderu znajdzie się plik tekstowy o nazwie zdefiniowanej w `PLIK_EXPORTU_NAZWA` (domyślnie `export.txt`).
-3.  Plik ten będzie zawierał połączoną zawartość wszystkich *niepominiętych* plików znalezionych w `FOLDER_ZRODLOWY_RELATYWNY`. Każdy fragment kodu będzie poprzedzony komentarzem z oryginalną ścieżką pliku, np.:
+# --- KONIEC EKSPORTU KODU ---
+```
 
-    ```
-    # --- POCZĄTEK EKSPORTU KODU ---
-    # Źródło: /ścieżka/do/twojego/workspace
-    # Pominięte rozszerzenia: .tmp, .bak
-    # Pominięte ścieżki: export_code
-    #
+## Rozwiązywanie problemów
 
-    ========================================
-    === Plik: main.py
-    ========================================
-
-    # Zawartość pliku main.py
-    print("Hello, World!")
-
-
-    ========================================
-    === Plik: utils/helpers.py
-    ========================================
-
-    # Zawartość pliku utils/helpers.py
-    def helper_function():
-        pass
-
-    # --- KONIEC EKSPORTU KODU ---
-    ```
-
-## Ważne uwagi
-
-*   **Nadpisywanie:** Każde uruchomienie skryptu **nadpisuje** istniejący plik `export.txt`. Jeśli chcesz zachować poprzednie wersje, zmień nazwę pliku wynikowego lub zrób kopię przed ponownym uruchomieniem.
-*   **Kodowanie plików:** Skrypt próbuje odczytać pliki źródłowe przy użyciu kodowania UTF-8 i ignoruje błędy. Oznacza to, że nietypowe znaki w plikach o innym kodowaniu mogą zostać pominięte lub zastąpione.
-*   **Duże projekty:** W przypadku bardzo dużych projektów z wieloma plikami, wynikowy plik `export.txt` może stać się bardzo duży.
-*   **Pominięcie ważnych folderów:** Upewnij się, że lista `POMIJANE_SCIEZKI` zawiera wszystkie foldery, których nie chcesz eksportować (np. foldery z zależnościami, repozytoria git, pliki konfiguracyjne środowisk wirtualnych itp.).
+**Uprawnienia:** Upewnij się, że masz prawo zapisu w folderze wynikowym.  
+**Za duży plik?** Zawęź `FOLDER_ZRODLOWY_RELATYWNY` lub dodaj więcej wzorców do ignorowanych.  
+**Błędy Unicode?** Skrypt ignoruje błędy kodowania; upewnij się, że pliki są UTF‑8 lub zmodyfikuj kodowanie.
 
 [🔝 Back to top / Powrót na górę](#top)
